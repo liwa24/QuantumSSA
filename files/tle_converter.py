@@ -38,13 +38,15 @@ def parse_anomalies(file_path):
 #anomalies_df = parse_anomalies(anomalies_file_path)
 
 def compute_julian_date(year, day_of_year):
-    # Convert year and day_of_year to a datetime object
+    # Ensure year is an int
+    year = int(year)
+
     date = datetime(year, 1, 1) + timedelta(days=day_of_year - 1)
     starting_date = datetime(1995, 1, 1)
     date -= starting_date
-    # convert the date to the number of days, hours, minutes, and seconds
     date = date.total_seconds()
-    return date/(24*3600)
+    return date / (24 * 3600)
+
 
 
 def parse_tle(tle_lines):
