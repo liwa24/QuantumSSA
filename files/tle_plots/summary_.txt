@@ -1,0 +1,50 @@
+Maneuver Summary of Analysis:
+
+Number of maneuvers for TLE 1: 115
+Number of maneuvers in the anomaly file for TLE 1: 119
+
+Number of maneuvers for TLE 1: 115
+Number of maneuvers in the anomaly file for TLE 1: 119
+
+Number of maneuvers for TLE 1: 115
+Number of maneuvers in the anomaly file for TLE 1: 119
+
+Number of maneuvers for TLE 2: 81
+Number of maneuvers in the anomaly file for TLE 2: 111
+
+Number of maneuvers for TLE 3: 172
+Number of maneuvers in the anomaly file for TLE 3: 177
+
+Number of maneuvers for TLE 4: 71
+Number of maneuvers in the anomaly file for TLE 4: 129
+
+Number of maneuvers for TLE 5: 100
+Number of maneuvers in the anomaly file for TLE 5: 122
+
+Number of maneuvers for TLE 4: 71
+Number of maneuvers in the anomaly file for TLE 4: 129
+
+Number of maneuvers for TLE 4: 71
+Number of maneuvers in the anomaly file for TLE 4: 129
+
+Number of maneuvers for TLE 4: 117
+Number of maneuvers in the anomaly file for TLE 4: 129
+
+Number of maneuvers for TLE 4: 117
+Number of maneuvers in the anomaly file for TLE 4: 129
+
+Number of maneuvers for TLE 4: 117
+Number of maneuvers in the anomaly file for TLE 4: 129
+
+Number of maneuvers for TLE 4: 117
+Number of maneuvers in the anomaly file for TLE 4: 129
+
+Number of maneuvers for TLE 5: 118
+Number of maneuvers in the anomaly file for TLE 5: 122
+
+Number of maneuvers for TLE 6: 101
+Number of maneuvers in the anomaly file for TLE 6: 116
+
+Number of maneuvers for TLE 7: 58
+Number of maneuvers in the anomaly file for TLE 7: 58
+

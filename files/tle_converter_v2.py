@@ -3,11 +3,14 @@ import pandas as pd
 import os
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import numpy as np
 import random
+import pickle
 
 # Define the reference start date
 REFERENCE_DATE = datetime(1995, 1, 1)
+PLOT_CUTTED = False
 
 # Convert a date to seconds since the reference date
 def to_seconds_since_1995(year, day_of_year, hour=0, minute=0, second=0):
@@ -21,8 +24,8 @@ def parse_anomalies(file_path):
         for line in f.readlines():
             parts = line.split()
             year = int(parts[1])
-            start_seconds = to_seconds_since_1995(year, int(parts[2]), int(parts[3]), int(parts[4]), float(parts[5]))
-            end_seconds = to_seconds_since_1995(year, int(parts[6]), int(parts[7]), int(parts[8]), float(parts[9]))
+            start_seconds = to_seconds_since_1995(year, int(parts[2]), int(parts[3]), int(parts[4]))
+            end_seconds = to_seconds_since_1995(int(parts[5]), int(parts[6]), int(parts[7]), int(parts[8]))
             anomalies.append({"Start Seconds": start_seconds, "End Seconds": end_seconds})
     return pd.DataFrame(anomalies)
 
@@ -33,7 +36,7 @@ def parse_tle(tle_lines):
         line1 = tle_lines[i].strip()
         line2 = tle_lines[i + 1].strip()
 
-        year = int("20" + line1[18:20])
+        year = int("20" + line1[18:20]) if int(line1[18:20]) < 25 else int("19" + line1[18:20]) #to correctly assign the year
         day_of_year = float(line1[20:32])
         inclination = float(line2[8:16]) * math.pi / 180
         omega = float(line2[17:25]) * math.pi / 180
@@ -99,9 +102,10 @@ def main(code=1, to_cut=False):
     # Save TLE data
     save_path = "files/tle_delta_dataframe"
     os.makedirs(save_path, exist_ok=True)
+    tle_dataframe = tle_dataframe.sort_values("Seconds Since 1995")
     tle_dataframe.to_csv(os.path.join(save_path, f"tle_{code}_delta.csv"), index=False)
 
-    # Plotting
+     # Plotting
     plot_columns = ["Semi-major axis (km)", "Eccentricity", "Inclination (rad) (sin)", "Omega (rad) (sin)", "Argument of Perigee (rad) (sin)"]
     os.makedirs("files/tle_plots", exist_ok=True)
 
@@ -126,34 +130,62 @@ def main(code=1, to_cut=False):
         ]
     else:
         # Use the full DataFrame if PLOT_CUTTED is False
-        cut_tle_dataframe = tle_dataframe
-
-    # Plotting
-    plt.figure(figsize=(12, 8))
+        cut_tle_dataframe = tle_dataframe 
+        
+     # Plotting
+    fig = plt.figure(figsize=(12, 8))
     for i, column in enumerate(plot_columns):
         plt.subplot(3, 2, i + 1)
-        plt.plot(cut_tle_dataframe["Seconds Since 1995"], cut_tle_dataframe[column], label=column, alpha=0.7)
+        cut_tle_dataframe["Formatted Date"] = cut_tle_dataframe["Seconds Since 1995"].apply(
+            lambda x: (REFERENCE_DATE + timedelta(seconds=x))
+            )
+        
+        plt.plot(cut_tle_dataframe["Formatted Date"], cut_tle_dataframe[column], label=column, alpha=0.7)
 
         # Highlight maneuver points
         maneuver_points = cut_tle_dataframe[cut_tle_dataframe["Maneuver"] == 1]
-        plt.scatter(maneuver_points["Seconds Since 1995"], maneuver_points[column], color="red", label="Maneuver", zorder=5)
+        plt.scatter(maneuver_points["Formatted Date"], maneuver_points[column], color="red", label="Maneuver", zorder=5)
 
         maneuver_points = cut_tle_dataframe[cut_tle_dataframe["Maneuver"] == 2]
-        plt.scatter(maneuver_points["Seconds Since 1995"], maneuver_points[column], color="orange", label="Maneuver", zorder=5)
-        plt.xlabel("Seconds Since 1995")
+        plt.scatter(maneuver_points["Formatted Date"], maneuver_points[column], color="orange", label="Maneuver", zorder=5)
+        plt.xlabel("Date")
         plt.ylabel(column)
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%y'))
+        plt.xticks(rotation=45)
         plt.legend()
 
     plt.tight_layout()
+    
     plt.savefig(f"files/tle_plots/tle_{code}_with_maneuvers{'_cut' if PLOT_CUTTED else ''}.pdf")
-    plt.show()
+    with open(f"files/tle_plots/tle_{code}_with_maneuvers{'_cut' if PLOT_CUTTED else ''}.pkl", 'wb') as f:
+        pickle.dump(fig, f)
+    plt.show() 
+    
+output_file_summary = f"files/tle_plots/summary_{'_cut' if PLOT_CUTTED else ''}.txt"
 
+# Check if the file exists
+if not os.path.exists(output_file_summary):
+    # If the file doesn't exist, create it and write a header (optional)
+    with open(output_file_summary, 'w') as f:
+        f.write("Maneuver Summary of Analysis:\n\n")  # Optional header
 
-for code in range(1, 4):
-    main(code=code, to_cut=True)
+for code in range(5, 8):
+    main(code=code, to_cut=PLOT_CUTTED)
     # count the number of maneuvers where the maneuver is marked as 1 or 2
     tle_dataframe = pd.read_csv(f"files/tle_delta_dataframe/tle_{code}_delta.csv")
     print(f"Number of maneuvers for TLE {code}: {tle_dataframe[tle_dataframe['Maneuver'] > 0].shape[0]}")
     # count the number of maneuvers in the "man_dataset" file
     anomalies_df = parse_anomalies(f"files/man_dataset/man_{code}.txt")
-    print(f"Number of maneuvers in the anomaly file for TLE {code}: {anomalies_df.shape[0]}")
+    print(f"Number of maneuvers in the anomaly file for TLE {code}: {anomalies_df.shape[0]}") 
+    
+    with open(output_file_summary, 'a') as f:
+        f.write(f"Number of maneuvers for TLE {code}: {tle_dataframe[tle_dataframe['Maneuver'] > 0].shape[0]}\n")
+        f.write(f"Number of maneuvers in the anomaly file for TLE {code}: {anomalies_df.shape[0]}\n")
+        f.write("\n")  # Add a newline for better readability
+
+#reading a file pkl
+print("reading a file")
+with open(f"files/tle_plots/tle_{1}_with_maneuvers{'_cut' if False else ''}.pkl", 'rb') as f:
+    fig = pickle.load(f)
+    plt.show()
+print("done")
