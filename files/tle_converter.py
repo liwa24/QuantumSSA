@@ -103,7 +103,7 @@ for i, tle in enumerate(parsed_tle_data):
         break
 tle_dataframe = pd.DataFrame(parsed_tle_data)
 
-tle_dataframe["Semi-major axis (km)"] = (((tle_dataframe["Orbital Period (s)"]/2/math.pi) ** 2) * 398600)** (1/3) #costante sbagliata
+tle_dataframe["Semi-major axis (km)"] = (((tle_dataframe["Orbital Period (s)"]/2/math.pi) ** 2) * 3.98600433e+5)** (1/3) #costante sbagliata
 # Add Julian Date column
 tle_dataframe["Julian Date"] = tle_dataframe.apply(
     lambda row: compute_julian_date(row["Year"], row["Day of Year"]), axis=1
